@@ -35784,6 +35784,166 @@ try {
 
 /***/ }),
 
+/***/ 6695:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.commands = void 0;
+const exec_1 = __nccwpck_require__(4969);
+const up = (stackName) => (0, exec_1.exec)(`nitric up --ci --stack ${stackName}`).then(r => r.stdout);
+const down = (stackName) => (0, exec_1.exec)(`nitric down --ci --stack ${stackName}`).then(r => r.stdout);
+exports.commands = {
+    up,
+    down
+};
+
+
+/***/ }),
+
+/***/ 4969:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.exec = void 0;
+const aexec = __importStar(__nccwpck_require__(1514));
+const exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
+    const { exitCode, stdout, stderr } = yield aexec.getExecOutput(command, args, {
+        silent: silent,
+        ignoreReturnCode: true,
+    });
+    return {
+        success: exitCode === 0,
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+    };
+});
+exports.exec = exec;
+
+
+/***/ }),
+
+/***/ 8427:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getDownloadUrl = void 0;
+const os_1 = __importDefault(__nccwpck_require__(2037));
+const got_1 = __importDefault(__nccwpck_require__(137));
+const getArch = (arch) => {
+    const mappings = {
+        arm64: 'arm64'
+    };
+    return mappings[arch] || 'x86_64';
+};
+const getLatestVersion = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Fetch the latest release information
+        const result = yield (0, got_1.default)('https://api.github.com/repos/nitrictech/cli/releases/latest', { responseType: 'json' });
+        // Extract the tag name (version)
+        const version = result.body.tag_name;
+        return version.replace(/^v/, '');
+    }
+    catch (error) {
+        console.error('Error fetching latest release:', error);
+    }
+});
+const getDownloadUrl = (version) => __awaiter(void 0, void 0, void 0, function* () {
+    const arch = getArch(os_1.default.arch());
+    if (version.toLowerCase() === 'latest') {
+        const latestVersion = yield getLatestVersion();
+        if (!latestVersion) {
+            throw new Error('error finding latest nitric version');
+        }
+        version = latestVersion;
+    }
+    const filename = `nitric_${version}_Linux_${arch}.tar.gz`;
+    return `https://github.com/nitrictech/cli/releases/download/v${version}/${filename}`;
+});
+exports.getDownloadUrl = getDownloadUrl;
+
+
+/***/ }),
+
+/***/ 6052:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getVersion = void 0;
+const exec_1 = __nccwpck_require__(4969);
+const getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
+    const { stdout } = yield (0, exec_1.exec)('nitric', ['version']);
+    const version = stdout.trim();
+    if (!version) {
+        throw new Error('Could not determine installed Nitric CLI version');
+    }
+    return version;
+});
+exports.getVersion = getVersion;
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -35844,10 +36004,11 @@ const os = __importStar(__nccwpck_require__(2037));
 const io = __importStar(__nccwpck_require__(7436));
 const path = __importStar(__nccwpck_require__(1017));
 const semver = __importStar(__nccwpck_require__(1383));
-const utils_1 = __nccwpck_require__(1314);
 const fs_1 = __nccwpck_require__(7147);
+const get_download_url_1 = __nccwpck_require__(8427);
+const get_version_1 = __nccwpck_require__(6052);
+const commands_1 = __nccwpck_require__(6695);
 const supportedPlatforms = ['linux'];
-const supportedCommands = ['up', 'down'];
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
@@ -35867,19 +36028,19 @@ function run() {
             const command = (_b = core.getInput('command')) === null || _b === void 0 ? void 0 : _b.trim();
             const stackName = (_c = core.getInput('stack-name')) === null || _c === void 0 ? void 0 : _c.trim();
             if (command) {
-                if (!supportedCommands.includes(command)) {
-                    throw new Error(`Incorrect command - use one of the supported commands ${supportedCommands.join(', ')}`);
+                if (!(command in commands_1.commands)) {
+                    throw new Error(`Incorrect command - use one of the supported commands ${Object.keys(commands_1.commands).join(', ')}`);
                 }
                 // Check stack-name
                 if (!stackName) {
                     throw new Error('A stack-name is required when using a command');
                 }
                 if (!(0, fs_1.existsSync)(`./nitric-${stackName}.yaml`)) {
-                    throw new Error(`Stack ${stackName} does not exist. Check that nitric-${stackName}.yaml exists`);
+                    throw new Error(`Stack '${stackName}' does not exist. Check ensure the nitric-${stackName}.yaml stack file exists`);
                 }
             }
             // Download release version
-            const url = yield (0, utils_1.getDownloadUrl)(version);
+            const url = yield (0, get_download_url_1.getDownloadUrl)(version);
             let downloaded;
             try {
                 downloaded = yield tc.downloadTool(url);
@@ -35895,8 +36056,15 @@ function run() {
             yield tc.extractTar(downloaded, destination);
             const cachedPath = yield tc.cacheDir(destination, 'nitric', version);
             core.addPath(cachedPath);
-            const installedVersion = yield (0, utils_1.getInstalledVersion)();
+            const installedVersion = yield (0, get_version_1.getVersion)();
             core.setOutput('version', installedVersion);
+            // run command if exists
+            if (command && stackName) {
+                core.info(`Running command ${command}`);
+                yield commands_1.commands[command](stackName);
+                core.info(`Done running command ${command}`);
+                //core.setOutput('output', output)
+            }
         }
         catch (error) {
             if (error instanceof Error)
@@ -35906,74 +36074,6 @@ function run() {
 }
 exports.run = run;
 run();
-
-
-/***/ }),
-
-/***/ 1314:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInstalledVersion = exports.getDownloadUrl = void 0;
-const os_1 = __importDefault(__nccwpck_require__(2037));
-const child_process_1 = __nccwpck_require__(2081);
-const got_1 = __importDefault(__nccwpck_require__(137));
-const util_1 = __nccwpck_require__(3837);
-const doExec = (0, util_1.promisify)(child_process_1.exec);
-const getArch = (arch) => {
-    const mappings = {
-        arm64: 'arm64'
-    };
-    return mappings[arch] || 'x86_64';
-};
-const getLatestVersion = () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // Fetch the latest release information
-        const result = yield (0, got_1.default)('https://api.github.com/repos/nitrictech/cli/releases/latest', { responseType: 'json' });
-        // Extract the tag name (version)
-        const version = result.body.tag_name;
-        return version.replace(/^v/, '');
-    }
-    catch (error) {
-        console.error('Error fetching latest release:', error);
-    }
-});
-const getDownloadUrl = (version) => __awaiter(void 0, void 0, void 0, function* () {
-    const arch = getArch(os_1.default.arch());
-    if (version.toLowerCase() === 'latest') {
-        const latestVersion = yield getLatestVersion();
-        if (!latestVersion) {
-            throw new Error('error finding latest nitric version');
-        }
-        version = latestVersion;
-    }
-    const filename = `nitric_${version}_Linux_${arch}.tar.gz`;
-    return `https://github.com/nitrictech/cli/releases/download/v${version}/${filename}`;
-});
-exports.getDownloadUrl = getDownloadUrl;
-const getInstalledVersion = () => __awaiter(void 0, void 0, void 0, function* () {
-    const { stdout } = yield doExec('nitric version');
-    const version = stdout.trim();
-    if (!version) {
-        throw new Error('Could not determine installed Nitric CLI version');
-    }
-    return version;
-});
-exports.getInstalledVersion = getInstalledVersion;
 
 
 /***/ }),

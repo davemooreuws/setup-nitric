@@ -20,13 +20,12 @@ import * as os from 'os'
 import * as io from '@actions/io'
 import * as path from 'path'
 import * as semver from 'semver'
-import {getDownloadUrl, getInstalledVersion} from './utils'
 import {existsSync} from 'fs'
-import {cwd} from 'process'
+import {getDownloadUrl} from './lib/get-download-url'
+import {getVersion} from './lib/get-version'
+import {commands} from './commands'
 
 const supportedPlatforms = ['linux']
-
-const supportedCommands = ['up', 'down']
 
 export async function run() {
   try {
@@ -47,11 +46,11 @@ export async function run() {
     const command = core.getInput('command')?.trim()
     const stackName = core.getInput('stack-name')?.trim()
     if (command) {
-      if (!supportedCommands.includes(command)) {
+      if (!(command in commands)) {
         throw new Error(
-          `Incorrect command - use one of the supported commands ${supportedCommands.join(
-            ', '
-          )}`
+          `Incorrect command - use one of the supported commands ${Object.keys(
+            commands
+          ).join(', ')}`
         )
       }
 
@@ -62,7 +61,7 @@ export async function run() {
 
       if (!existsSync(`./nitric-${stackName}.yaml`)) {
         throw new Error(
-          `Stack ${stackName} does not exist. Check that nitric-${stackName}.yaml exists`
+          `Stack '${stackName}' does not exist. Check ensure the nitric-${stackName}.yaml stack file exists`
         )
       }
     }
@@ -87,8 +86,17 @@ export async function run() {
     const cachedPath = await tc.cacheDir(destination, 'nitric', version)
     core.addPath(cachedPath)
 
-    const installedVersion = await getInstalledVersion()
+    const installedVersion = await getVersion()
     core.setOutput('version', installedVersion)
+
+    // run command if exists
+    if (command && stackName) {
+      core.info(`Running command ${command}`)
+      await commands[command](stackName)
+      core.info(`Done running command ${command}`)
+
+      //core.setOutput('output', output)
+    }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
