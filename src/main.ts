@@ -14,71 +14,81 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as core from "@actions/core";
-import * as tc from "@actions/tool-cache";
-import * as os from "os";
-import * as io from '@actions/io';
-import * as path from "path";
-import * as semver from "semver";
+import * as core from '@actions/core'
+import * as tc from '@actions/tool-cache'
+import * as os from 'os'
+import * as io from '@actions/io'
+import * as path from 'path'
+import * as semver from 'semver'
+import {getDownloadUrl, getInstalledVersion} from './utils'
+import {existsSync} from 'fs'
 
+const supportedPlatforms = ['linux']
 
-function getNitricUrl(version, platform) { 
-    const baseUrl = `https://github.com/nitrictech/cli/releases/download/`;
-    const url = `${baseUrl}v${version}/nitric_${version}`;
-    if (platform == 'win32') {
-        return `${url}_Windows_x86_64.zip`;
-    } else if (platform == 'darwin') { 
-        return `${url}_macOS_x86_64.tar.gz`;
-    } else { 
-        return `${url}_Linux_x86_64.tar.gz`;
-    }        
-}
+const supportedCommands = ['up', 'down']
 
-async function run() {
-    try {
-        // Check for git action platform compatibility
-        const platforms = {
-            linux: 'linux',
-            // MacOS runner does not include docker
-            //darwin: 'darwin',
-            // Windows runner cannot virtualize linux docker 
-            //win32: 'win32',
-        };
-
-        const rp = os.platform();
-        if (!(rp in platforms)) {
-            throw new Error("Unsupported operating system.");
-        }
-
-        // Check version format
-        const version = core.getInput('version')?.trim();
-        if (!semver.valid(version)) { 
-            throw new Error("Incorrect version - Use semantic versioning E.g. 1.2.1");
-        }
-
-        // Download release version
-        const url = getNitricUrl(version, rp);
-        let downloaded
-        try { 
-            downloaded = await tc.downloadTool(url);
-            core.info(`Downloaded package from - ${url}`);
-        } catch (error) { 
-            throw new Error(`Could not download CLI from url : ${url}`);
-        }
-
-        // Extract and add to path
-        const destination = path.join(os.homedir(), ".nitric");
-        if (rp as string == "win32") {
-            await tc.extractZip(downloaded, destination);
-        } else { 
-            await io.mkdirP(destination);
-            await tc.extractTar(downloaded, destination);
-        }
-        core.info(`Installation path - ${destination}`);
-        core.addPath(destination);
-    } catch (error : any) {
-        core.setFailed(error);
+export async function run() {
+  try {
+    const runnerPlatform = os.platform()
+    // Check for git action platform compatibility
+    // MacOS runner does not include docker and Windows runner cannot virtualize linux docker
+    if (!supportedPlatforms.includes(runnerPlatform)) {
+      throw new Error('Unsupported operating system. Needs to run on linux')
     }
+
+    // Check version format
+    const version = core.getInput('version')?.trim()
+    if (!semver.valid(version) && version.toLowerCase() !== 'latest') {
+      throw new Error('Incorrect version - Use semantic versioning E.g. 1.2.1')
+    }
+
+    // Check command
+    const command = core.getInput('command')?.trim()
+    const stackName = core.getInput('stack-name')?.trim()
+    if (command) {
+      if (!supportedCommands.includes(command)) {
+        throw new Error(
+          `Incorrect command - use one of the supported commands ${supportedCommands.join(
+            ', '
+          )}`
+        )
+      }
+
+      // Check stack-name
+      if (!stackName) {
+        throw new Error('A stack-name is required when using a command')
+      }
+
+      if (!existsSync(`./nitric-${stackName}.yaml`)) {
+        throw new Error('A stack-name is required when using a command')
+      }
+    }
+
+    // Download release version
+    const url = await getDownloadUrl(version)
+    let downloaded: string
+    try {
+      downloaded = await tc.downloadTool(url)
+      core.info(`Successfully downloaded ${url.split('/').pop()}`)
+    } catch (error) {
+      throw new Error(`Could not download CLI from url : ${url}`)
+    }
+
+    // Extract and add to path
+    const destination = path.join(os.homedir(), '.nitric', 'bin')
+    core.info(`Install destination is ${destination}`)
+
+    await io.mkdirP(destination)
+    await tc.extractTar(downloaded, destination)
+
+    const cachedPath = await tc.cacheDir(destination, 'nitric', version)
+    core.addPath(cachedPath)
+
+    const installedVersion = await getInstalledVersion()
+    core.setOutput('version', installedVersion)
+  } catch (error) {
+    if (error instanceof Error) core.setFailed(error.message)
+  }
 }
 
-run();
+run()
