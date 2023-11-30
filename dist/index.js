@@ -35875,7 +35875,7 @@ function run() {
                     throw new Error('A stack-name is required when using a command');
                 }
                 if (!(0, fs_1.existsSync)(`./nitric-${stackName}.yaml`)) {
-                    throw new Error('A stack-name is required when using a command');
+                    throw new Error(`Stack ${stackName} does not exist. Check that nitric-${stackName}.yaml exists`);
                 }
             }
             // Download release version

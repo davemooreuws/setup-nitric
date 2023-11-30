@@ -22,6 +22,7 @@ import * as path from 'path'
 import * as semver from 'semver'
 import {getDownloadUrl, getInstalledVersion} from './utils'
 import {existsSync} from 'fs'
+import {cwd} from 'process'
 
 const supportedPlatforms = ['linux']
 
@@ -60,7 +61,9 @@ export async function run() {
       }
 
       if (!existsSync(`./nitric-${stackName}.yaml`)) {
-        throw new Error('A stack-name is required when using a command')
+        throw new Error(
+          `Stack ${stackName} does not exist. Check that nitric-${stackName}.yaml exists`
+        )
       }
     }
 
