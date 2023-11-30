@@ -92,10 +92,15 @@ export async function run() {
     // run command if exists
     if (command && stackName) {
       core.info(`Running command ${command}`)
-      await commands[command](stackName)
+      const output = await commands[command](stackName)
       core.info(`Done running command ${command}`)
 
-      //core.setOutput('output', output)
+      core.setOutput('output', output)
+
+      // cache docker
+      await tc.cacheDir(path.join(os.homedir(), '.docker'), 'docker', version)
+
+      //await tc.cacheDir('/tmp/.buildx-cache', 'buildx', version)
     }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)

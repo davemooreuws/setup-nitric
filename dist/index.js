@@ -36061,9 +36061,12 @@ function run() {
             // run command if exists
             if (command && stackName) {
                 core.info(`Running command ${command}`);
-                yield commands_1.commands[command](stackName);
+                const output = yield commands_1.commands[command](stackName);
                 core.info(`Done running command ${command}`);
-                //core.setOutput('output', output)
+                core.setOutput('output', output);
+                // cache docker
+                yield tc.cacheDir(path.join(os.homedir(), '.docker'), 'docker', version);
+                //await tc.cacheDir('/tmp/.buildx-cache', 'buildx', version)
             }
         }
         catch (error) {
